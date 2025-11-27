@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
+import pandas as pd
+import datetime
+import json
 # Same notebook variables
 max_date = "2024-01-31"
 min_date = "2024-01-01"
@@ -12,7 +15,6 @@ def create_artifact_directory():
     os.makedirs("artifacts", exist_ok=True)
     print("Created artifacts directory")
 
-import pandas as pd
 
 def load_data():
     print("Loading training data")
@@ -25,9 +27,6 @@ def load_data():
     return data
 
 def clean_data(data):
-    import pandas as pd
-    import datetime
-    import json
     global max_date, min_date
 
     if not max_date:
