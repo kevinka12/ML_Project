@@ -49,4 +49,33 @@ def clean_data(data):
 
     return data
 
+def drop_columns(data):
+    """
+    Drops irrelevant columns exactly as in the notebook.
+    """
+
+    # Drop columns not relevant for modelling
+    data = data.drop(
+        [
+            "is_active",
+            "marketing_consent",
+            "first_booking",
+            "existing_customer",
+            "last_seen",
+        ],
+        axis=1
+    )
+
+    # Drop columns that will be added back after the EDA
+    data = data.drop(
+        [
+            "domain",
+            "country",
+            "visited_learn_more_before_booking",
+            "visited_faq",
+        ],
+        axis=1
+    )
+
+    return data
 
