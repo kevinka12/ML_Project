@@ -23,9 +23,6 @@ def impute_missing_values(x, method="mean"):
         x = x.fillna(x.mode()[0])
     return x
 
-# src/features/build_features.py
-
-import pandas as pd
 
 def create_dummy_cols(df, col):
     df_dummies = pd.get_dummies(df[col], prefix=col, drop_first=True)
