@@ -79,3 +79,28 @@ def drop_columns(data):
 
     return data
 
+def clean_missing_and_invalid(data):
+    
+    import numpy as np
+
+    # Replace empty strings with NaN
+    data["lead_indicator"].replace("", np.nan, inplace=True)
+    data["lead_id"].replace("", np.nan, inplace=True)
+    data["customer_code"].replace("", np.nan, inplace=True)
+
+    # Drop rows with missing target variable and lead_id
+    data = data.dropna(axis=0, subset=["lead_indicator"])
+    data = data.dropna(axis=0, subset=["lead_id"])
+
+    # Keep only signup rows
+    data = data[data.source == "signup"]
+
+    # Print target distribution
+    result = data.lead_indicator.value_counts(normalize=True)
+
+    print("Target value counter")
+    for val, n in zip(result.index, result):
+        print(val, ": ", n)
+
+    return data
+
