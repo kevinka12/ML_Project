@@ -125,3 +125,24 @@ def convert_categorical_columns(data):
 
     return data
 
+def separate_categorical_and_continuous(data):
+    """
+    Separates continuous and categorical variables exactly as in the notebook.
+    """
+
+    from pprint import pprint
+
+    # Continuous variables: float64 or int64
+    cont_vars = data.loc[:, ((data.dtypes == "float64") | (data.dtypes == "int64"))]
+
+    # Categorical variables: object type
+    cat_vars = data.loc[:, (data.dtypes == "object")]
+
+    print("\nContinuous columns: \n")
+    pprint(list(cont_vars.columns), indent=4)
+
+    print("\n Categorical columns: \n")
+    pprint(list(cat_vars.columns), indent=4)
+
+    return cat_vars, cont_vars
+
