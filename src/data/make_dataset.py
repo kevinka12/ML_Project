@@ -104,3 +104,24 @@ def clean_missing_and_invalid(data):
 
     return data
 
+def convert_categorical_columns(data):
+
+    """
+    Converts specific columns to object type exactly as in the notebook.
+    """
+
+    vars = [
+        "lead_id",
+        "lead_indicator",
+        "customer_group",
+        "onboarding",
+        "source",
+        "customer_code",
+    ]
+
+    for col in vars:
+        data[col] = data[col].astype("object")
+        print(f"Changed {col} to object type")
+
+    return data
+
