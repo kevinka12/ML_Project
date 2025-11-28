@@ -13,7 +13,7 @@ def get_training_config():
         "experiment_name": experiment_name
     }
 
-# src/models/train_model.py
+
 
 import os
 import shutil
@@ -25,3 +25,13 @@ def setup_training_environment(experiment_name):
     os.makedirs("mlruns/.trash", exist_ok=True)
 
     mlflow.set_experiment(experiment_name)
+
+
+
+import pandas as pd
+
+def load_training_data(data_gold_path):
+    data = pd.read_csv(data_gold_path)
+    print(f"Training data length: {len(data)}")
+    print(data.head(5))
+    return data
