@@ -13,3 +13,15 @@ def get_training_config():
         "experiment_name": experiment_name
     }
 
+# src/models/train_model.py
+
+import os
+import shutil
+import mlflow
+
+def setup_training_environment(experiment_name):
+    os.makedirs("artifacts", exist_ok=True)
+    os.makedirs("mlruns", exist_ok=True)
+    os.makedirs("mlruns/.trash", exist_ok=True)
+
+    mlflow.set_experiment(experiment_name)
