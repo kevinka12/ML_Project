@@ -407,3 +407,29 @@ def compare_models_and_select(
     print(f"Registered model: {run_id}")
 
     return run_id, model_status
+
+
+import mlflow
+
+def register_best_model(run_id, artifact_path, model_name):
+    if run_id is not None:
+        print(f'Best model found: {run_id}')
+
+        model_uri = "runs:/{run_id}/{artifact_path}".format(
+            run_id=run_id,
+            artifact_path=artifact_path
+        )
+
+        model_details = mlflow.register_model(
+            model_uri=model_uri,
+            name=model_name
+        )
+
+        wait_until_ready(model_details.name, model_details.version)
+
+        model_details = dict(model_details)
+        print(model_details)
+
+        return model_details
+    
+    return None
