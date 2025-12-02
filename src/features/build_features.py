@@ -40,3 +40,21 @@ def split_data_types(data):
     other_vars = data.drop(cat_cols, axis=1)
 
     return data, cat_vars, other_vars
+
+
+def encode_and_combine_features(cat_vars, other_vars):
+    # Convert categorical vars to category type and create dummies
+    for col in cat_vars:
+        cat_vars[col] = cat_vars[col].astype("category")
+        cat_vars = create_dummy_cols(cat_vars, col)
+
+    # Combine with numeric vars
+    data = pd.concat([other_vars, cat_vars], axis=1)
+
+    # Convert all columns to float
+    for col in data:
+        data[col] = data[col].astype("float64")
+        print(f"Changed column {col} to float")
+
+    return data
+
