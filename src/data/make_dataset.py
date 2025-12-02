@@ -4,7 +4,7 @@ import pandas as pd
 import datetime
 import json
 
-from src.features.build_features import describe_numeric_col
+from src.features.build_features import describe_numeric_col, impute_missing_values
 # Same notebook variables
 max_date = "2024-01-31"
 min_date = "2024-01-01"
