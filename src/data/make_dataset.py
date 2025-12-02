@@ -290,3 +290,12 @@ def bin_source_column(data):
     data["bin_source"] = data["source"].map(mapping)
 
     return data
+
+def save_gold_dataset(data):
+    """
+    Saves the gold medallion dataset exactly as in the notebook.
+    (Spark/Databricks-specific lines are intentionally kept out because they were commented.)
+    """
+
+    data.to_csv("./artifacts/train_data_gold.csv", index=False)
+    print("Saved gold medallion dataset.")
