@@ -120,3 +120,23 @@ def performance_overview(y_train, y_pred_train, y_test, y_pred_test):
     print(classification_report(y_train, y_pred_train), '\n')
 
     return conf_matrix_train, conf_matrix_test
+
+
+
+from sklearn.metrics import classification_report
+
+def save_best_xgboost_model(model_grid, y_train, y_pred_train):
+    xgboost_model = model_grid.best_estimator_
+    xgboost_model_path = "./artifacts/lead_model_xgboost.json"
+    
+    # Save model
+    xgboost_model.save_model(xgboost_model_path)
+
+    # Store classification report
+    model_results = {
+        xgboost_model_path: classification_report(
+            y_train, y_pred_train, output_dict=True
+        )
+    }
+
+    return xgboost_model_path, model_results
