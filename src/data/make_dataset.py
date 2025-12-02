@@ -263,3 +263,30 @@ def save_drift_artifacts(data):
     data.to_csv("./artifacts/training_data.csv", index=False)
 
     print("Saved drift artifacts and training data.")
+
+def bin_source_column(data):
+    """
+    Creates the bin_source column exactly as in the notebook.
+    """
+
+    # Step 1: Create bin_source copy of source column
+    data["bin_source"] = data["source"]
+
+    # Step 2: Values list from notebook
+    values_list = ["li", "organic", "signup", "fb"]
+
+    # Step 3: Mark all other values as "Others"
+    data.loc[~data["source"].isin(values_list), "bin_source"] = "Others"
+
+    # Step 4: Mapping exactly as in the notebook
+    mapping = {
+        "li": "socials",
+        "fb": "socials",
+        "organic": "group1",
+        "signup": "group1",
+    }
+
+    # Step 5: Overwrite with mapped values
+    data["bin_source"] = data["source"].map(mapping)
+
+    return data
