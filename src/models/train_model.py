@@ -98,3 +98,25 @@ def evaluate_model(model_grid, X_train, y_train, X_test, y_test):
     print("Accuracy test", accuracy_score(y_pred_test, y_test))
 
     return best_model_xgboost_params, y_pred_train, y_pred_test
+
+
+
+from sklearn.metrics import confusion_matrix, classification_report
+import pandas as pd
+
+def performance_overview(y_train, y_pred_train, y_test, y_pred_test):
+    # Test confusion matrix
+    conf_matrix_test = confusion_matrix(y_test, y_pred_test)
+    print("Test actual/predicted\n")
+    print(pd.crosstab(y_test, y_pred_test, rownames=['Actual'], colnames=['Predicted'], margins=True), '\n')
+    print("Classification report\n")
+    print(classification_report(y_test, y_pred_test), '\n')
+
+    # Train confusion matrix
+    conf_matrix_train = confusion_matrix(y_train, y_pred_train)
+    print("Train actual/predicted\n")
+    print(pd.crosstab(y_train, y_pred_train, rownames=['Actual'], colnames=['Predicted'], margins=True), '\n')
+    print("Classification report\n")
+    print(classification_report(y_train, y_pred_train), '\n')
+
+    return conf_matrix_train, conf_matrix_test
