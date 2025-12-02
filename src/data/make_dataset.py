@@ -3,6 +3,8 @@ import os
 import pandas as pd
 import datetime
 import json
+
+from src.features.build_features import describe_numeric_col
 # Same notebook variables
 max_date = "2024-01-31"
 min_date = "2024-01-01"
@@ -169,3 +171,35 @@ def handle_outliers(cont_vars):
     print("Outlier summary saved to artifacts/outlier_summary.csv")
 
     return cont_vars
+
+def impute_missing_values_dataset(cat_vars, cont_vars):
+    """
+    Performs missing value imputation exactly as in the notebook.
+    Saves categorical impute values and applies mean/median imputation
+    for continuous and categorical variables.
+    """
+
+    # 1. Categorical impute values (mode)
+    cat_missing_impute = cat_vars.mode(numeric_only=False, dropna=True)
+    cat_missing_impute.to_csv("./artifacts/cat_missing_impute.csv")
+
+    # 2. Continuous variables: impute using existing function
+    # (describe_numeric_col and impute_missing_values already exist in this file)
+    cont_vars = cont_vars.apply(impute_missing_values)
+    cont_vars.apply(describe_numeric_col).T
+
+    # 3. Special rule from notebook: missing customer_code → "None"
+    cat_vars.loc[cat_vars["customer_code"].isna(), "customer_code"] = "None"
+
+    # 4. Apply impute_missing_values on categorical vars
+    cat_vars = cat_vars.apply(impute_missing_values)
+
+    # 5. Print missing-values summary (same as notebook)
+    cat_vars.apply(
+        lambda x: pd.Series(
+            [x.count(), x.isnull().sum()],
+            index=["Count", "Missing"]
+        )
+    ).T
+
+    return cat_vars, cont_vars
