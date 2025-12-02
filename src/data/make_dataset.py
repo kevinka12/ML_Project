@@ -244,3 +244,22 @@ def combine_processed_data(cat_vars, cont_vars):
     print(f"Data cleansed and combined.\nRows: {len(data)}")
 
     return data
+
+def save_drift_artifacts(data):
+    """
+    Saves data drift artifacts exactly as in the notebook:
+    - columns_drift.json
+    - training_data.csv
+    """
+
+    # Get list of columns
+    data_columns = list(data.columns)
+
+    # Save column list
+    with open("./artifacts/columns_drift.json", "w+") as f:
+        json.dump(data_columns, f)
+
+    # Save processed training data
+    data.to_csv("./artifacts/training_data.csv", index=False)
+
+    print("Saved drift artifacts and training data.")
