@@ -433,3 +433,11 @@ def register_best_model(run_id, artifact_path, model_name):
         return model_details
     
     return None
+
+
+
+def get_deployment_config():
+    model_version = 1
+    return {
+        "model_version": model_version
+    }
