@@ -29,3 +29,14 @@ def create_dummy_cols(df, col):
     new_df = pd.concat([df, df_dummies], axis=1)
     new_df = new_df.drop(col, axis=1)
     return new_df
+
+
+def split_data_types(data):
+    data = data.drop(["lead_id", "customer_code", "date_part"], axis=1)
+
+    cat_cols = ["customer_group", "onboarding", "bin_source", "source"]
+    cat_vars = data[cat_cols]
+
+    other_vars = data.drop(cat_cols, axis=1)
+
+    return data, cat_vars, other_vars
