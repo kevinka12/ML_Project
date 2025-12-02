@@ -80,3 +80,21 @@ def train_xgboost_model(X_train, y_train):
     model_grid.fit(X_train, y_train)
 
     return model_grid
+
+
+
+from sklearn.metrics import accuracy_score
+from pprint import pprint
+
+def evaluate_model(model_grid, X_train, y_train, X_test, y_test):
+    best_model_xgboost_params = model_grid.best_params_
+    print("Best xgboost params")
+    pprint(best_model_xgboost_params)
+
+    y_pred_train = model_grid.predict(X_train)
+    y_pred_test = model_grid.predict(X_test)
+
+    print("Accuracy train", accuracy_score(y_pred_train, y_train))
+    print("Accuracy test", accuracy_score(y_pred_test, y_test))
+
+    return best_model_xgboost_params, y_pred_train, y_pred_test
