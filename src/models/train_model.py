@@ -35,3 +35,17 @@ def load_training_data(data_gold_path):
     print(f"Training data length: {len(data)}")
     print(data.head(5))
     return data
+
+
+
+from sklearn.model_selection import train_test_split
+
+def split_train_test(data):
+    y = data["lead_indicator"]
+    X = data.drop(["lead_indicator"], axis=1)
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, random_state=42, test_size=0.15, stratify=y
+    )
+
+    return X_train, X_test, y_train, y_test
