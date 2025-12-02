@@ -203,3 +203,27 @@ def impute_missing_values_dataset(cat_vars, cont_vars):
     ).T
 
     return cat_vars, cont_vars
+
+def scale_continuous_variables(cont_vars):
+    """
+    Scales continuous variables using MinMaxScaler exactly as in the notebook.
+    Saves scaler to artifacts folder and returns transformed cont_vars.
+    """
+
+    from sklearn.preprocessing import MinMaxScaler
+    import joblib
+
+    scaler_path = "./artifacts/scaler.pkl"
+
+    # Fit scaler on continuous variables (same as in notebook)
+    scaler = MinMaxScaler()
+    scaler.fit(cont_vars)
+
+    # Save scaler
+    joblib.dump(value=scaler, filename=scaler_path)
+    print("Saved scaler in artifacts")
+
+    # Transform variables (same as notebook)
+    cont_vars = pd.DataFrame(scaler.transform(cont_vars), columns=cont_vars.columns)
+
+    return cont_vars
