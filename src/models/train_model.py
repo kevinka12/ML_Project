@@ -376,3 +376,34 @@ def get_production_model(model_name):
     else:
         print('No model in production')
         return None
+
+
+
+import mlflow
+
+def compare_models_and_select(
+    experiment_best,
+    prod_model_exists,
+    prod_model_run_id
+):
+    train_model_score = experiment_best["metrics.f1_score"]
+    model_status = {}
+    run_id = None
+
+    if prod_model_exists:
+        data, details = mlflow.get_run(prod_model_run_id)
+        prod_model_score = data[1]["metrics.f1_score"]
+
+        model_status["current"] = train_model_score
+        model_status["prod"] = prod_model_score
+
+        if train_model_score > prod_model_score:
+            print("Registering new model")
+            run_id = experiment_best["run_id"]
+    else:
+        print("No model in production")
+        run_id = experiment_best["run_id"]
+
+    print(f"Registered model: {run_id}")
+
+    return run_id, model_status
