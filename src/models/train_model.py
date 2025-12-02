@@ -311,3 +311,34 @@ def wait_until_ready(model_name, model_version):
         if status == ModelVersionStatus.READY:
             break
         time.sleep(1)
+
+
+
+import json
+import mlflow
+import pandas as pd
+
+def select_best_model(experiment_name):
+    # Get experiment id
+    experiment_ids = [mlflow.get_experiment_by_name(experiment_name).experiment_id]
+    
+    # Search for best experiment run
+    experiment_best = mlflow.search_runs(
+        experiment_ids=experiment_ids,
+        order_by=["metrics.f1_score DESC"],
+        max_results=1
+    ).iloc[0]
+    
+    # Load local model results
+    with open("./artifacts/model_results.json", "r") as f:
+        model_results = json.load(f)
+
+    results_df = pd.DataFrame({
+        model: val["weighted avg"] 
+        for model, val in model_results.items()
+    }).T
+
+    best_model = results_df.sort_values("f1-score", ascending=False).iloc[0].name
+    print(f"Best model: {best_model}")
+
+    return experiment_best, best_model, results_df
