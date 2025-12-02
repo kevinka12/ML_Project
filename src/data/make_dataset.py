@@ -227,3 +227,20 @@ def scale_continuous_variables(cont_vars):
     cont_vars = pd.DataFrame(scaler.transform(cont_vars), columns=cont_vars.columns)
 
     return cont_vars
+
+def combine_processed_data(cat_vars, cont_vars):
+    """
+    Combines categorical and continuous variables exactly as in the notebook.
+    """
+
+    # Reset index just like in the notebook
+    cont_vars = cont_vars.reset_index(drop=True)
+    cat_vars = cat_vars.reset_index(drop=True)
+
+    # Combine into a single dataframe
+    data = pd.concat([cat_vars, cont_vars], axis=1)
+
+    # Same print as notebook
+    print(f"Data cleansed and combined.\nRows: {len(data)}")
+
+    return data
