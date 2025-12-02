@@ -146,3 +146,26 @@ def separate_categorical_and_continuous(data):
 
     return cat_vars, cont_vars
 
+def handle_outliers(cont_vars):
+    """
+    Clips continuous variables to remove outliers using Z-score logic
+    exactly as in the notebook.
+    """
+
+    # Apply clipping to each continuous column
+    cont_vars = cont_vars.apply(
+        lambda x: x.clip(
+            lower=(x.mean() - 2 * x.std()),
+            upper=(x.mean() + 2 * x.std())
+        )
+    )
+
+    # Generate outlier summary
+    outlier_summary = cont_vars.apply(describe_numeric_col).T
+
+    # Save summary to artifacts
+    outlier_summary.to_csv('./artifacts/outlier_summary.csv')
+
+    print("Outlier summary saved to artifacts/outlier_summary.csv")
+
+    return cont_vars
