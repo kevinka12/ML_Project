@@ -277,3 +277,19 @@ def save_artifacts(X_train, model_results):
         json.dump(model_results, results_file)
 
     return column_list_path, model_results_path
+
+
+import datetime
+
+def get_model_selection_config():
+    current_date = datetime.datetime.now().strftime("%Y_%B_%d")
+    artifact_path = "model"
+    model_name = "lead_model"
+    experiment_name = current_date
+
+    return {
+        "current_date": current_date,
+        "artifact_path": artifact_path,
+        "model_name": model_name,
+        "experiment_name": experiment_name
+    }
