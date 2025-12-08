@@ -27,14 +27,12 @@ jobs:
       - name: Run training pipeline with Dagger
         run: dagger run --workdir dagger go run main.go
 
-      # Upload model artifact (required for validator test)
       - name: Upload trained model artifact
         uses: actions/upload-artifact@v4
         with:
           name: model
           path: artifacts/model
 
-      # Upload everything for debugging
       - name: Upload full artifacts bundle
         uses: actions/upload-artifact@v4
         with:
