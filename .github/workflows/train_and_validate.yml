@@ -47,6 +47,10 @@ jobs:
           path: artifacts
 
 
+      -name: Run model validator
+       uses: lasselundstenjensen/itu-sdse-project-model-validator@v1
+       with:
+         model-path: artifacts/model
 
 
 
