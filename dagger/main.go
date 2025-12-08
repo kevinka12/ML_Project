@@ -36,7 +36,7 @@ func main() {
 
 	// Export artifacts to host
 	_, err = container.
-		Directory("artifacts").
+		Directory("notebooks/artifacts").
 		Export(ctx, "./artifacts")
 
 	if err != nil {
