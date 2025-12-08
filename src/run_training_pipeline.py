@@ -1,5 +1,8 @@
 # src/run_training_pipeline.py
 
+import shutil
+import os
+
 """
 Full training pipeline that:
 1. Loads raw data
@@ -50,7 +53,7 @@ from src.models.train_model import (
 
 
 def run_pipeline():
-    # Phase 1: Dataset preparation (as in the notebooks data part)
+    # Phase 1: Dataset preparation
     create_artifact_directory()
 
     data = load_data()
@@ -70,12 +73,11 @@ def run_pipeline():
     save_drift_artifacts(data)
     save_gold_dataset(data)
 
-    # Phase 2: Feature engineering for model training
-    # split_data_types returns: data, cat_vars, other_vars
+    # Phase 2: Feature engineering
     data, cat_vars, other_vars = split_data_types(data)
     data_encoded = encode_and_combine_features(cat_vars, other_vars)
 
-    # Phase 3: Model training (XGBoost + LR)
+    # Phase 3: Model training
     config = get_training_config()
     setup_training_environment(config["experiment_name"])
 
@@ -109,13 +111,12 @@ def run_pipeline():
         model_results,
     )
 
-    # Phase 5: Save artifacts (kolonneliste + model_results.json)
+    # Save metadata artifacts
     save_artifacts(X_train, model_results)
 
-    # Phase 6: Model selection (choose best model on f1_score)
+    # Phase 6: Model selection
     model_selection_cfg = get_model_selection_config()
 
-    # use same experiment_name as training to be sure
     experiment_best, best_model, results_df = select_best_model(
         config["experiment_name"]
     )
@@ -134,6 +135,26 @@ def run_pipeline():
             False,
             None,
         )
+
+    # --- Save final model as artifacts/model (required by exam) ---
+
+    os.makedirs("artifacts", exist_ok=True)
+
+    # Delete existing file if present
+    final_model_path = "artifacts/model"
+    if os.path.exists(final_model_path):
+        os.remove(final_model_path)
+
+    # Determine which file to copy
+    if best_model.endswith(".json"):
+        source_model_path = "artifacts/lead_model_xgboost.json"
+    else:
+        source_model_path = "artifacts/lead_model_lr.pkl"
+
+    # Copy model → artifacts/model
+    shutil.copy(source_model_path, final_model_path)
+
+    print(f"Saved best model to artifacts/model")
 
     print("Training pipeline finished.")
     print("Best model:", best_model)
