@@ -18,23 +18,24 @@ jobs:
           go-version: "1.22.5"
           cache: false
 
-        name: Install Dagger CLI
-          run: |
-            curl -L https://dl.dagger.io/dagger/install.sh | DAGGER_INSTALL_BINARY=/usr/local/bin/dagger sh
+      - name: Install Dagger CLI
+        run: |
+          curl -L https://dl.dagger.io/dagger/install.sh | DAGGER_INSTALL_BINARY=/usr/local/bin/dagger sh
 
-          run: dagger run --workdir dagger go run main.go
+      - name: Run Dagger workflow
+        run: dagger run --workdir dagger go run main.go
 
-          name: Upload trained model artifact
-          uses: actions/upload-artifact@v4
-          with:
-            name: model
-            path: artifacts/model
+      - name: Upload trained model artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: model
+          path: artifacts/model
 
-          name: Upload full artifacts bundle
-          uses: actions/upload-artifact@v4
-          with:
-            name: artifacts
-            path: artifacts
+      - name: Upload full artifacts bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts
+          path: artifacts
   
   validate:
     needs: train
@@ -46,11 +47,10 @@ jobs:
           name: model
           path: artifacts
 
-
-      -name: Run model validator
-       uses: lasselundstenjensen/itu-sdse-project-model-validator@v1
-       with:
-         model-path: artifacts/model
+      - name: Run model validator
+        uses: lasselundstenjensen/itu-sdse-project-model-validator@v1
+        with:
+          model-path: artifacts/model
 
 
 
