@@ -3,7 +3,6 @@ name: train-and-validate
 on:
   push:
     branches: [main]
-  pull_request:
   workflow_dispatch:
 
 jobs:
@@ -19,26 +18,24 @@ jobs:
         with:
           go-version: "1.22.5"
 
-      - name: Install Dagger CLI
-        shell: bash
-        run: |
-          mkdir -p $HOME/.local/bin
-          curl -L https://dl.dagger.io/dagger/install.sh \
-            | DAGGER_INSTALL_BINARY=$HOME/.local/bin/dagger bash
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      # --- Dagger official GitHub Action (this WORKS) ---
+      - name: Run Dagger pipeline
+        uses: dagger/dagger-for-github@v5
+        with:
+          version: "0.19.8"
+          workdir: .
+          # this runs: go run main.go
+          args: |
+            go run dagger/main.go
 
-      - name: Verify Dagger install
-        run: dagger version
-
-      - name: Run training pipeline with Dagger
-        run: dagger run --workdir dagger go run main.go
-
+      # Upload model (after pipeline placed model in notebooks/artifacts/model)
       - name: Upload trained model artifact
         uses: actions/upload-artifact@v4
         with:
           name: model
           path: notebooks/artifacts/model
 
+      # Upload all artifacts (feature drift, scaler, etc.)
       - name: Upload full artifacts bundle
         uses: actions/upload-artifact@v4
         with:
