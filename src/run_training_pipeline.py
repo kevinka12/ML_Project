@@ -136,7 +136,7 @@ def run_pipeline():
             None,
         )
 
-    # --- Save final model as artifacts/model (required by exam) ---
+    # --- Save final model as artifacts/model ---
 
     os.makedirs("artifacts", exist_ok=True)
 
@@ -151,7 +151,7 @@ def run_pipeline():
     else:
         source_model_path = "artifacts/lead_model_lr.pkl"
 
-    # Copy model → artifacts/model
+    # Copy model -> artifacts/model
     shutil.copy(source_model_path, final_model_path)
 
     print(f"Saved best model to artifacts/model")
