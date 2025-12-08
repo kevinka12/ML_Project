@@ -50,7 +50,7 @@ from src.models.train_model import (
 
 
 def run_pipeline():
-    # Phase 1: Dataset preparation (som i notebookens data-del)
+    # Phase 1: Dataset preparation (as in the notebooks data part)
     create_artifact_directory()
 
     data = load_data()
@@ -71,7 +71,7 @@ def run_pipeline():
     save_gold_dataset(data)
 
     # Phase 2: Feature engineering for model training
-    # split_data_types returnerer: data, cat_vars, other_vars
+    # split_data_types returns: data, cat_vars, other_vars
     data, cat_vars, other_vars = split_data_types(data)
     data_encoded = encode_and_combine_features(cat_vars, other_vars)
 
@@ -112,10 +112,10 @@ def run_pipeline():
     # Phase 5: Save artifacts (kolonneliste + model_results.json)
     save_artifacts(X_train, model_results)
 
-    # Phase 6: Model selection (vælg bedste model på f1_score)
+    # Phase 6: Model selection (choose best model on f1_score)
     model_selection_cfg = get_model_selection_config()
 
-    # Brug samme experiment_name som ved træningen for at være helt sikker
+    # use same experiment_name as training to be sure
     experiment_best, best_model, results_df = select_best_model(
         config["experiment_name"]
     )
