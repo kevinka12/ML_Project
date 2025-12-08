@@ -20,25 +20,24 @@ func main() {
 
 	fmt.Println("Starting Dagger workflow...")
 
-	// Load local project directory
+	// Load entire repo
 	src := client.Host().Directory(".")
 
-	// Create container for training pipeline
+	// Create container
 	container := client.Container().
 		From("python:3.11-slim").
 		WithDirectory("/app", src).
-		WithWorkdir("/app").
+		WithWorkdir("/app/notebooks"). // ← IMPORTANT: DVC ROOT
 		WithEnvVariable("PYTHONPATH", "/app").
-		WithExec([]string{"pip", "install", "-r", "requirements.txt"}).
-		WithExec([]string{"pip", "install", "dvc[s3]"}).
-		WithExec([]string{"dvc", "pull", "notebooks/artifacts/raw_data.csv"}).
-		WithExec([]string{"python", "src/run_training_pipeline.py"})
+		WithExec([]string{"pip", "install", "-r", "../requirements.txt"}). // pipeline reqs
+		WithExec([]string{"pip", "install", "dvc[s3]"}). // install DVC engine
+		WithExec([]string{"dvc", "pull"}).               // let DVC restore raw_data.csv
+		WithExec([]string{"python", "../src/run_training_pipeline.py"}) // run pipeline from root
 
-	// Export artifacts to host
+	// Export artifacts
 	_, err = container.
-		Directory("notebooks/artifacts").
-		Export(ctx, "./artifacts")
-
+		Directory("artifacts").           // relative to /app/notebooks
+		Export(ctx, "./notebooks/artifacts") // export back to host in same place
 	if err != nil {
 		panic(err)
 	}
