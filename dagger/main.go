@@ -30,6 +30,7 @@ func main() {
 		WithWorkdir("/app").
 		WithEnvVariable("PYTHONPATH", "/app").
 		WithExec([]string{"pip", "install", "-r", "requirements.txt"}).
+		WithExec([]string{"pip", "install", "dvc[s3]"}).
 		WithExec([]string{"python", "src/run_training_pipeline.py"})
 
 	// Export artifacts to host
