@@ -35,6 +35,10 @@ func main() {
 		WithExec([]string{"python", "../src/run_training_pipeline.py"}) // run pipeline from root
 
 	// Export artifacts
+	// DEBUG: list directory contents inside container
+	container = container.WithExec([]string{"sh", "-c", "echo '---- Listing notebooks ----' && ls -R /app/notebooks"})
+	container = container.WithExec([]string{"sh", "-c", "echo '---- Listing artifacts (expected) ----' && ls -R /app/notebooks/artifacts || echo 'artifacts folder DOES NOT EXIST'"})
+
 	_, err = container.
 		Directory("notebooks/artifacts").           
 		Export(ctx, "./notebooks/artifacts") 
