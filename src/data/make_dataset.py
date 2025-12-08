@@ -21,7 +21,7 @@ def create_artifact_directory():
 def load_data():
     print("Loading training data")
 
-    data = pd.read_csv("./artifacts/raw_data.csv")
+    data = pd.read_csv("notebooks/artifacts/raw_data.csv")
 
     print("Total rows:", data.count())
     print(data.head(5))
