@@ -35,6 +35,19 @@ jobs:
           with:
             name: artifacts
             path: artifacts
+  
+  validate:
+    needs: train
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download model artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: model
+          path: artifacts
+
+
+
 
 
           
