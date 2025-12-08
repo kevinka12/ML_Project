@@ -19,7 +19,22 @@ jobs:
           cache: false
 
         name: Install Dagger CLI
-          run:|
+          run: |
             curl -L https://dl.dagger.io/dagger/install.sh | DAGGER_INSTALL_BINARY=/usr/local/bin/dagger sh
 
-              run:dagger run --workdir dagger go run main.go
+          run: dagger run --workdir dagger go run main.go
+
+          name: Upload trained model artifact
+          uses: actions/upload-artifact@v4
+          with:
+            name: model
+            path: artifacts/model
+
+          name: Upload full artifacts bundle
+          uses: actions/upload-artifact@v4
+          with:
+            name: artifacts
+            path: artifacts
+
+
+          
