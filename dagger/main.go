@@ -21,7 +21,7 @@ func main() {
 	fmt.Println("Starting Dagger workflow...")
 
 	// Load local project directory
-	src := client.Host().Directory("../")
+	src := client.Host().Directory(".")
 
 	// Create container for training pipeline
 	container := client.Container().
@@ -35,7 +35,7 @@ func main() {
 	// Export artifacts to host
 	_, err = container.
 		Directory("artifacts").
-		Export(ctx, "../notebooks/artifacts")
+		Export(ctx, "notebooks/artifacts")
 
 	if err != nil {
 		panic(err)
