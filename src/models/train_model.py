@@ -207,12 +207,12 @@ def train_logistic_regression(
         mlflow.log_param("data_version", "00000")
 
         # Save LR model
-        joblib.dump(value=best_model, filename=lr_model_path)
+        joblib.dump(value=model, filename=lr_model_path)
 
         # Log custom Python model
         mlflow.pyfunc.log_model(
             'model',
-            python_model=lr_wrapper(best_model)
+            python_model=lr_wrapper(model)
         )
 
     model_classification_report = classification_report(
