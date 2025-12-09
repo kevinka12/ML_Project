@@ -20,22 +20,22 @@ func main() {
 
 	fmt.Println("Starting Dagger workflow...")
 
-	// Load repository, but exclude large folders
-	src := client.Host().Directory(".", dagger.HostDirectoryOpts{
-		Exclude: []string{"notebooks/artifacts"},
-	})
+	// Load entire repository (NO EXCLUDES!)
+	src := client.Host().Directory(".")
 
 	// Build container
 	container := client.Container().
 		From("python:3.11-slim").
-		WithDirectory("/app", src).
-		WithWorkdir("/app").
+		WithDirectory("/app", src).         // copy repo -> /app
+		WithWorkdir("/app").                // work from repo root
 		WithEnvVariable("PYTHONPATH", "/app").
 		WithExec([]string{"pip", "install", "-r", "requirements.txt"}).
 		WithExec([]string{"python", "src/run_training_pipeline.py"})
 
-	// Export artifacts
-	_, err = container.Directory("/app/notebooks/artifacts").Export(ctx, "notebooks/artifacts")
+	// Export artifacts dir back to host
+	_, err = container.
+		Directory("/app/notebooks/artifacts").
+		Export(ctx, "notebooks/artifacts")
 	if err != nil {
 		panic(err)
 	}
