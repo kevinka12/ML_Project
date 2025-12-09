@@ -25,7 +25,7 @@ jobs:
           | DAGGER_INSTALL_BINARY=/usr/local/bin/dagger sh
 
       - name: Run training pipeline with Dagger
-        run: dagger run --workdir dagger go run main.go
+        run: dagger run go run ./dagger/main.go
 
       - name: Upload trained model artifact
         uses: actions/upload-artifact@v4
