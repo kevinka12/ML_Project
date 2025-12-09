@@ -25,7 +25,8 @@ jobs:
       - name: Install Dagger CLI
         run: |
          curl -L https://dl.dagger.io/dagger/install.sh | sh
-         echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
+         export PATH="$PWD/bin:$PATH"
+         echo "$PWD/bin" >> $GITHUB_PATH
          dagger version
 
       - name: Run training pipeline with Dagger
