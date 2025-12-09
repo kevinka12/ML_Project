@@ -21,17 +21,18 @@ jobs:
       - name: Run Dagger training pipeline
         run: go run dagger/main.go
 
+      # === NEW: upload model from /tmp instead of repo ===
       - name: Upload trained model
         uses: actions/upload-artifact@v4
         with:
           name: model
-          path: notebooks/artifacts/model.pkl
+          path: /tmp/model_artifacts/model.pkl
 
       - name: Upload all artifacts
         uses: actions/upload-artifact@v4
         with:
           name: artifacts
-          path: notebooks/artifacts
+          path: /tmp/model_artifacts
 
   validate:
     needs: train
