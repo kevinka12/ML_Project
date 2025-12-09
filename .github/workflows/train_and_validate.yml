@@ -18,33 +18,24 @@ jobs:
         with:
           go-version: "1.22.5"
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
       # Install Dagger CLI
       - name: Install Dagger CLI
         run: |
           curl -L https://dl.dagger.io/dagger/install.sh | DAGGER_VERSION=0.19.8 sh
           sudo mv bin/dagger /usr/local/bin/dagger
 
-      # Start Dagger engine
-      - name: Start Dagger Engine
-        run: dagger engine start &
-
-      # Run your Dagger pipeline (Go code)
+      # Run Dagger pipeline (this starts the engine automatically)
       - name: Run Dagger pipeline
         run: go run dagger/main.go
 
-      # Upload model artifact for validator
+      # Upload trained model for validator
       - name: Upload trained model artifact
         uses: actions/upload-artifact@v4
         with:
           name: model
           path: notebooks/artifacts/model
 
-      # Upload the entire artifacts folder
+      # Upload the full artifacts folder
       - name: Upload full artifacts bundle
         uses: actions/upload-artifact@v4
         with:
