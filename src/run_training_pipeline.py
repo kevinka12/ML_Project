@@ -1,17 +1,21 @@
 # src/run_training_pipeline.py
 
-import shutil
 import os
+import joblib
 
 """
-Full training pipeline that:
-1. Loads raw data
-2. Cleans and preprocesses data
-3. Builds features
-4. Trains models
-5. Selects best model
-6. Saves artifacts
+Full training pipeline:
+1. Load raw data
+2. Clean + preprocess
+3. Feature engineering
+4. Train models
+5. Select best model
+6. Export final model as notebooks/artifacts/model.pkl
 """
+
+# -------------------------
+# IMPORTS FROM PROJECT CODE
+# -------------------------
 
 from src.data.make_dataset import (
     create_artifact_directory,
@@ -51,9 +55,20 @@ from src.models.train_model import (
     compare_models_and_select,
 )
 
+# -------------------------
+# MAIN PIPELINE
+# -------------------------
+
+ARTIFACT_DIR = "notebooks/artifacts"
+
 
 def run_pipeline():
+    # Safety: always ensure artifacts directory exists
+    os.makedirs(ARTIFACT_DIR, exist_ok=True)
+
+    # ---------------------------------
     # Phase 1: Dataset preparation
+    # ---------------------------------
     create_artifact_directory()
 
     data = load_data()
@@ -61,6 +76,7 @@ def run_pipeline():
     data = drop_columns(data)
     data = clean_missing_and_invalid(data)
     data = convert_categorical_columns(data)
+
     cat_vars, cont_vars = separate_categorical_and_continuous(data)
 
     cont_vars = handle_outliers(cont_vars)
@@ -73,17 +89,21 @@ def run_pipeline():
     save_drift_artifacts(data)
     save_gold_dataset(data)
 
+    # ---------------------------------
     # Phase 2: Feature engineering
+    # ---------------------------------
     data, cat_vars, other_vars = split_data_types(data)
     data_encoded = encode_and_combine_features(cat_vars, other_vars)
 
+    # ---------------------------------
     # Phase 3: Model training
+    # ---------------------------------
     config = get_training_config()
     setup_training_environment(config["experiment_name"])
 
     X_train, X_test, y_train, y_test = split_train_test(data_encoded)
 
-    # XGBoost
+    # XGBoost model
     model_grid_xgb = train_xgboost_model(X_train, y_train)
     params_xgb, y_pred_train_xgb, y_pred_test_xgb = evaluate_model(
         model_grid_xgb, X_train, y_train, X_test, y_test
@@ -94,7 +114,7 @@ def run_pipeline():
         model_grid_xgb, y_train, y_pred_train_xgb
     )
 
-    # Logistic Regression
+    # Logistic Regression model
     (
         lr_model_path,
         best_lr_params,
@@ -111,58 +131,54 @@ def run_pipeline():
         model_results,
     )
 
-    # Save metadata artifacts
+    # Store metadata
     save_artifacts(X_train, model_results)
 
-    # Phase 6: Model selection
+    # ---------------------------------
+    # Phase 4: Model selection
+    # ---------------------------------
     model_selection_cfg = get_model_selection_config()
 
-    experiment_best, best_model, results_df = select_best_model(
+    experiment_best, best_model_filename, results_df = select_best_model(
         config["experiment_name"]
     )
 
     prod_info = get_production_model(model_selection_cfg["model_name"])
 
     if prod_info:
-        run_id, status = compare_models_and_select(
-            experiment_best,
-            True,
-            prod_info["run_id"],
+        compare_models_and_select(
+            experiment_best, True, prod_info["run_id"]
         )
     else:
-        run_id, status = compare_models_and_select(
-            experiment_best,
-            False,
-            None,
+        compare_models_and_select(
+            experiment_best, False, None
         )
 
-    # --- Save final model as artifacts/model.pkl for validator compatibility ---
+    # ---------------------------------
+    # Phase 5: Export final model as notebooks/artifacts/model.pkl
+    # ---------------------------------
 
-    import joblib
+    # Full path to the best model inside artifacts folder
+    best_model_path = os.path.join(ARTIFACT_DIR, best_model_filename)
 
-    # Ensure artifacts directory exists (relative to working dir: /app/notebooks)
-    os.makedirs("artifacts", exist_ok=True)
+    # Load model based on file type
+    if best_model_filename.endswith(".pkl"):
+        model_obj = joblib.load(best_model_path)
 
-    # best_model is just a filename like "lead_model_lr.pkl" or "lead_model_xgboost.json"
-    model_path = os.path.join("artifacts", best_model)
-
-    # Load the actual model object
-    if best_model.endswith(".pkl"):
-        model_obj = joblib.load(model_path)
-    elif best_model.endswith(".json"):
+    elif best_model_filename.endswith(".json"):
         import xgboost as xgb
         model_obj = xgb.XGBClassifier()
-        model_obj.load_model(model_path)
-    else:
-        raise ValueError(f"Unknown model format: {best_model}")
+        model_obj.load_model(best_model_path)
 
-    # Save the loaded model object in a single, flat file for the validator
-    final_model_path = "artifacts/model.pkl"
+    else:
+        raise ValueError(f"Unknown model format: {best_model_filename}")
+
+    # Save validator-compatible model
+    final_model_path = os.path.join(ARTIFACT_DIR, "model.pkl")
     joblib.dump(model_obj, final_model_path)
 
-    print("Saved validator-compatible model as artifacts/model.pkl")
+    print(f"\n✔ Saved validator-compatible model to: {final_model_path}\n")
 
 
 if __name__ == "__main__":
     run_pipeline()
-
