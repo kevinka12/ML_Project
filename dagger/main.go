@@ -11,7 +11,6 @@ import (
 func main() {
 	ctx := context.Background()
 
-	// Connect to Dagger
 	client, err := dagger.Connect(ctx, dagger.WithLogOutput(os.Stdout))
 	if err != nil {
 		panic(err)
@@ -20,7 +19,7 @@ func main() {
 
 	fmt.Println("Starting Dagger workflow...")
 
-	// Load repository WITHOUT excluding artifacts
+	// Load repo
 	src := client.Host().Directory(".", dagger.HostDirectoryOpts{})
 
 	// Build container
@@ -29,16 +28,15 @@ func main() {
 		WithDirectory("/app", src).
 		WithWorkdir("/app").
 		WithEnvVariable("PYTHONPATH", "/app").
-		// Ensure artifacts folder exists
 		WithExec([]string{"mkdir", "-p", "notebooks/artifacts"}).
 		WithExec([]string{"pip", "install", "-r", "requirements.txt"}).
 		WithExec([]string{"python", "src/run_training_pipeline.py"})
 
-	// Export artifacts
-	_, err = container.Directory("/app/notebooks/artifacts").Export(ctx, "./notebooks/artifacts")
+	// Export to a NEW, non-existing folder
+	_, err = container.Directory("/app/notebooks/artifacts").Export(ctx, "./exported_artifacts")
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println("Dagger workflow completed successfully.")
+	fmt.Println("Dagger workflow complete.")
 }
