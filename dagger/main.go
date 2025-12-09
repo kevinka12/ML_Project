@@ -19,10 +19,10 @@ func main() {
 
 	fmt.Println("Starting Dagger workflow...")
 
-	// Load full repository WITHOUT excluding anything
+	// Load entire repo
 	src := client.Host().Directory(".")
 
-	// Container setup
+	// Build container
 	container := client.Container().
 		From("python:3.11-slim").
 		WithDirectory("/app", src).
@@ -32,9 +32,19 @@ func main() {
 		WithExec([]string{"mkdir", "-p", "notebooks/artifacts"}).
 		WithExec([]string{"python", "src/run_training_pipeline.py"})
 
-	// Export artifacts to /tmp (CI-friendly)
-	exportPath := "/tmp/model_artifacts"
-	_, err = container.Directory("/app/notebooks/artifacts").Export(ctx, exportPath)
+	// Materialize directory object
+	artifactDir := container.Directory("/app/notebooks/artifacts")
+
+	// Export to a FOLDER IN REPOSITORY (CI-safe)
+	exportPath := "ci_artifacts"
+
+	os.RemoveAll(exportPath) // avoid conflicts in CI
+	err = os.MkdirAll(exportPath, 0o755)
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = artifactDir.Export(ctx, exportPath)
 	if err != nil {
 		panic(err)
 	}
