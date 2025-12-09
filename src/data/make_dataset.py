@@ -5,28 +5,32 @@ import datetime
 import json
 
 from src.features.build_features import describe_numeric_col, impute_missing_values
+
 # Same notebook variables
 max_date = "2024-01-31"
 min_date = "2024-01-01"
 
+ARTIFACT_DIR = "notebooks/artifacts"
+
 
 def create_artifact_directory():
     """
-    Creates artifacts/ directory if it does not exist.
+    Creates notebooks/artifacts/ directory if it does not exist.
     """
-    os.makedirs("notebooks/artifacts", exist_ok=True)
+    os.makedirs(ARTIFACT_DIR, exist_ok=True)
     print("Created artifacts directory")
 
 
 def load_data():
     print("Loading training data")
 
-    data = pd.read_csv("notebooks/artifacts/raw_data.csv")
+    data = pd.read_csv(f"{ARTIFACT_DIR}/raw_data.csv")
 
     print("Total rows:", data.count())
     print(data.head(5))
 
     return data
+
 
 def clean_data(data):
     global max_date, min_date
@@ -38,25 +42,26 @@ def clean_data(data):
 
     min_date = pd.to_datetime(min_date).date()
 
-    # Time limit data
+    # Time limit conversion
     data["date_part"] = pd.to_datetime(data["date_part"]).dt.date
     data = data[(data["date_part"] >= min_date) & (data["date_part"] <= max_date)]
 
+    # Save new min/max
     min_date = data["date_part"].min()
     max_date = data["date_part"].max()
 
     date_limits = {"min_date": str(min_date), "max_date": str(max_date)}
-    with open("./artifacts/date_limits.json", "w") as f:
+
+    with open(f"{ARTIFACT_DIR}/date_limits.json", "w") as f:
         json.dump(date_limits, f)
 
     return data
+
 
 def drop_columns(data):
     """
     Drops irrelevant columns exactly as in the notebook.
     """
-
-    # Drop columns not relevant for modelling
     data = data.drop(
         [
             "is_active",
@@ -68,7 +73,6 @@ def drop_columns(data):
         axis=1
     )
 
-    # Drop columns that will be added back after the EDA
     data = data.drop(
         [
             "domain",
@@ -81,23 +85,20 @@ def drop_columns(data):
 
     return data
 
+
 def clean_missing_and_invalid(data):
-    
     import numpy as np
 
-    # Replace empty strings with NaN
     data["lead_indicator"].replace("", np.nan, inplace=True)
     data["lead_id"].replace("", np.nan, inplace=True)
     data["customer_code"].replace("", np.nan, inplace=True)
 
-    # Drop rows with missing target variable and lead_id
     data = data.dropna(axis=0, subset=["lead_indicator"])
     data = data.dropna(axis=0, subset=["lead_id"])
 
     # Keep only signup rows
     data = data[data.source == "signup"]
 
-    # Print target distribution
     result = data.lead_indicator.value_counts(normalize=True)
 
     print("Target value counter")
@@ -106,12 +107,8 @@ def clean_missing_and_invalid(data):
 
     return data
 
+
 def convert_categorical_columns(data):
-
-    """
-    Converts specific columns to object type exactly as in the notebook.
-    """
-
     vars = [
         "lead_id",
         "lead_indicator",
@@ -127,34 +124,23 @@ def convert_categorical_columns(data):
 
     return data
 
-def separate_categorical_and_continuous(data):
-    """
-    Separates continuous and categorical variables exactly as in the notebook.
-    """
 
+def separate_categorical_and_continuous(data):
     from pprint import pprint
 
-    # Continuous variables: float64 or int64
     cont_vars = data.loc[:, ((data.dtypes == "float64") | (data.dtypes == "int64"))]
-
-    # Categorical variables: object type
     cat_vars = data.loc[:, (data.dtypes == "object")]
 
     print("\nContinuous columns: \n")
     pprint(list(cont_vars.columns), indent=4)
 
-    print("\n Categorical columns: \n")
+    print("\nCategorical columns: \n")
     pprint(list(cat_vars.columns), indent=4)
 
     return cat_vars, cont_vars
 
-def handle_outliers(cont_vars):
-    """
-    Clips continuous variables to remove outliers using Z-score logic
-    exactly as in the notebook.
-    """
 
-    # Apply clipping to each continuous column
+def handle_outliers(cont_vars):
     cont_vars = cont_vars.apply(
         lambda x: x.clip(
             lower=(x.mean() - 2 * x.std()),
@@ -162,127 +148,80 @@ def handle_outliers(cont_vars):
         )
     )
 
-    # Generate outlier summary
     outlier_summary = cont_vars.apply(describe_numeric_col).T
+    outlier_summary.to_csv(f"{ARTIFACT_DIR}/outlier_summary.csv")
 
-    # Save summary to artifacts
-    outlier_summary.to_csv('./artifacts/outlier_summary.csv')
-
-    print("Outlier summary saved to artifacts/outlier_summary.csv")
+    print("Outlier summary saved to notebooks/artifacts/outlier_summary.csv")
 
     return cont_vars
 
+
 def impute_missing_values_dataset(cat_vars, cont_vars):
-    """
-    Performs missing value imputation exactly as in the notebook.
-    Saves categorical impute values and applies mean/median imputation
-    for continuous and categorical variables.
-    """
-
-    # 1. Categorical impute values (mode)
+    # 1. Mode for categorical variables
     cat_missing_impute = cat_vars.mode(numeric_only=False, dropna=True)
-    cat_missing_impute.to_csv("./artifacts/cat_missing_impute.csv")
+    cat_missing_impute.to_csv(f"{ARTIFACT_DIR}/cat_missing_impute.csv")
 
-    # 2. Continuous variables: impute using existing function
-    # (describe_numeric_col and impute_missing_values already exist in this file)
+    # 2. Continuous variables
     cont_vars = cont_vars.apply(impute_missing_values)
     cont_vars.apply(describe_numeric_col).T
 
-    # 3. Special rule from notebook: missing customer_code → "None"
+    # 3. Customer_code special rule
     cat_vars.loc[cat_vars["customer_code"].isna(), "customer_code"] = "None"
 
-    # 4. Apply impute_missing_values on categorical vars
+    # 4. Impute categorical
     cat_vars = cat_vars.apply(impute_missing_values)
-
-    # 5. Print missing-values summary (same as notebook)
-    cat_vars.apply(
-        lambda x: pd.Series(
-            [x.count(), x.isnull().sum()],
-            index=["Count", "Missing"]
-        )
-    ).T
 
     return cat_vars, cont_vars
 
-def scale_continuous_variables(cont_vars):
-    """
-    Scales continuous variables using MinMaxScaler exactly as in the notebook.
-    Saves scaler to artifacts folder and returns transformed cont_vars.
-    """
 
+def scale_continuous_variables(cont_vars):
     from sklearn.preprocessing import MinMaxScaler
     import joblib
 
-    scaler_path = "./artifacts/scaler.pkl"
+    scaler_path = f"{ARTIFACT_DIR}/scaler.pkl"
 
-    # Fit scaler on continuous variables (same as in notebook)
     scaler = MinMaxScaler()
     scaler.fit(cont_vars)
 
-    # Save scaler
     joblib.dump(value=scaler, filename=scaler_path)
-    print("Saved scaler in artifacts")
+    print("Saved scaler in notebooks/artifacts")
 
-    # Transform variables (same as notebook)
     cont_vars = pd.DataFrame(scaler.transform(cont_vars), columns=cont_vars.columns)
 
     return cont_vars
 
-def combine_processed_data(cat_vars, cont_vars):
-    """
-    Combines categorical and continuous variables exactly as in the notebook.
-    """
 
-    # Reset index just like in the notebook
+def combine_processed_data(cat_vars, cont_vars):
     cont_vars = cont_vars.reset_index(drop=True)
     cat_vars = cat_vars.reset_index(drop=True)
 
-    # Combine into a single dataframe
     data = pd.concat([cat_vars, cont_vars], axis=1)
 
-    # Same print as notebook
     print(f"Data cleansed and combined.\nRows: {len(data)}")
 
     return data
 
+
 def save_drift_artifacts(data):
-    """
-    Saves data drift artifacts:
-    - notebooks/artifacts/columns_drift.json
-    - notebooks/artifacts/training_data.csv
-    """
-
-    ARTIFACT_DIR = "notebooks/artifacts"
-
     os.makedirs(ARTIFACT_DIR, exist_ok=True)
 
-    # Get list of columns
     data_columns = list(data.columns)
 
-    # Save column list
     with open(f"{ARTIFACT_DIR}/columns_drift.json", "w+") as f:
         json.dump(data_columns, f)
 
-    # Save processed training data
     data.to_csv(f"{ARTIFACT_DIR}/training_data.csv", index=False)
 
     print("Saved drift artifacts and training data.")
 
-def bin_source_column(data):
-    """
-    Creates the bin_source column exactly as in the notebook.
-    """
 
-    # Step 1: Create bin_source copy of source column
+def bin_source_column(data):
     data["bin_source"] = data["source"]
 
-    # Step 2: Values list from notebook
     values_list = ["li", "organic", "signup", "fb"]
 
-    # Step 3: Mark all other values as "Others"
     data.loc[~data["source"].isin(values_list), "bin_source"] = "Others"
 
-    # Step 4: Mapping exactly as in the notebook
     mapping = {
         "li": "socials",
         "fb": "socials",
@@ -290,22 +229,15 @@ def bin_source_column(data):
         "signup": "group1",
     }
 
-    # Step 5: Overwrite with mapped values
     data["bin_source"] = data["source"].map(mapping)
 
     return data
 
-def save_gold_dataset(data):
-    """
-    Saves the gold medallion dataset.
-    """
 
-    ARTIFACT_DIR = "notebooks/artifacts"
+def save_gold_dataset(data):
     os.makedirs(ARTIFACT_DIR, exist_ok=True)
 
     output_path = f"{ARTIFACT_DIR}/train_data_gold.csv"
-
     data.to_csv(output_path, index=False)
 
     print(f"Saved gold medallion dataset at: {output_path}")
-
