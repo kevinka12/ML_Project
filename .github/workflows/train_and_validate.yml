@@ -2,7 +2,7 @@ name: train-and-validate
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -21,25 +21,33 @@ jobs:
       - name: Run Dagger training pipeline
         run: go run dagger/main.go
 
-      # === NEW: upload model from /tmp instead of repo ===
-      - name: Upload trained model
+      # Upload model.pkl specifically
+      - name: Upload model artifact
         uses: actions/upload-artifact@v4
         with:
           name: model
-          path: /tmp/model_artifacts/model.pkl
+          path: ci_artifacts/model.pkl
 
+      # Upload everything else from artifacts
       - name: Upload all artifacts
         uses: actions/upload-artifact@v4
         with:
           name: artifacts
-          path: /tmp/model_artifacts
+          path: ci_artifacts/
 
   validate:
     needs: train
     runs-on: ubuntu-latest
 
     steps:
-      - name: Run model validator
+      - name: Download model
+        uses: actions/download-artifact@v4
+        with:
+          name: model
+          path: ./model
+
+      - name: Run validator
         uses: lasselundstenjensen/itu-sdse-project-model-validator@main
         with:
           model_password: ""
+          model_location: "./model/model.pkl"
