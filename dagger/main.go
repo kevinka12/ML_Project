@@ -19,10 +19,10 @@ func main() {
 
 	fmt.Println("Starting Dagger workflow...")
 
-	// Load repo
+	// Load full repo
 	src := client.Host().Directory(".", dagger.HostDirectoryOpts{})
 
-	// Build container
+	// Build training container
 	container := client.Container().
 		From("python:3.11-slim").
 		WithDirectory("/app", src).
@@ -32,11 +32,11 @@ func main() {
 		WithExec([]string{"pip", "install", "-r", "requirements.txt"}).
 		WithExec([]string{"python", "src/run_training_pipeline.py"})
 
-	// Export to a NEW, non-existing folder
-	_, err = container.Directory("/app/notebooks/artifacts").Export(ctx, "./exported_artifacts")
+	// Export artifacts to /tmp inside the GitHub runner
+	_, err = container.Directory("/app/notebooks/artifacts").Export(ctx, "/tmp/model_artifacts")
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println("Dagger workflow complete.")
+	fmt.Println("Dagger workflow completed successfully.")
 }
