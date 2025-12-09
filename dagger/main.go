@@ -19,12 +19,12 @@ func main() {
 
 	fmt.Println("Starting Dagger workflow...")
 
-	// Load repository files (exclude notebooks caches)
+	// Load project folder (excluding caches)
 	src := client.Host().Directory(".", dagger.HostDirectoryOpts{
-		Exclude: []string{"notebooks", "__pycache__", "mlruns"},
+		Exclude: []string{"__pycache__", "mlruns"},
 	})
 
-	// Build the container
+	// Build & run container
 	container := client.Container().
 		From("python:3.11-slim").
 		WithDirectory("/app", src).
@@ -33,7 +33,7 @@ func main() {
 		WithExec([]string{"pip", "install", "-r", "requirements.txt"}).
 		WithExec([]string{"python", "src/run_training_pipeline.py"})
 
-	// Export all artifacts to ci_artifacts folder
+	// Export artifacts folder to ci_artifacts/
 	_, err = container.Directory("/app/notebooks/artifacts").Export(ctx, "ci_artifacts")
 	if err != nil {
 		panic(err)
