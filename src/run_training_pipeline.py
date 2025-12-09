@@ -136,29 +136,18 @@ def run_pipeline():
             None,
         )
 
-    # --- Save final model as artifacts/model ---
+    # --- Save final model as artifacts/model.pkl for validator compatibility ---
+
+    import joblib
 
     os.makedirs("artifacts", exist_ok=True)
 
-    # Delete existing file if present
-    final_model_path = "artifacts/model"
-    if os.path.exists(final_model_path):
-        os.remove(final_model_path)
+    final_model_path = "artifacts/model.pkl"
 
-    # Determine which file to copy
-    if best_model.endswith(".json"):
-        source_model_path = "artifacts/lead_model_xgboost.json"
-    else:
-        source_model_path = "artifacts/lead_model_lr.pkl"
+    # Always save the selected best model directly as pickle
+    joblib.dump(best_model, final_model_path)
 
-    # Copy model -> artifacts/model
-    shutil.copy(source_model_path, final_model_path)
-
-    print(f"Saved best model to artifacts/model")
-
-    print("Training pipeline finished.")
-    print("Best model:", best_model)
-    print("Model comparison:", status)
+    print("Saved validator-compatible model as artifacts/model.pkl")
 
 
 if __name__ == "__main__":
