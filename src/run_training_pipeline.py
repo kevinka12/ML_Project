@@ -140,14 +140,25 @@ def run_pipeline():
 
     import joblib
 
-    # Create directory required by validator
+    # Create validator directory
     os.makedirs("artifacts/model", exist_ok=True)
 
-    # Validator expects model/model.pkl
-    final_model_path = "artifacts/model/model.pkl"
+    # best_model is just a filename, so create full path:
+    model_path = os.path.join("artifacts", best_model)
 
-    # Save best model in the required location
-    joblib.dump(best_model, final_model_path)
+    # Load the actual model object
+    if best_model.endswith(".pkl"):
+        model_obj = joblib.load(model_path)
+    elif best_model.endswith(".json"):
+        import xgboost as xgb
+        model_obj = xgb.XGBClassifier()
+        model_obj.load_model(model_path)
+    else:
+        raise ValueError(f"Unknown model format: {best_model}")
+
+    # Save the loaded model object in validator-required path
+    final_model_path = "artifacts/model/model.pkl"
+    joblib.dump(model_obj, final_model_path)
 
     print("Saved validator-compatible model as artifacts/model/model.pkl")
 
