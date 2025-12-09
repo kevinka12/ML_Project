@@ -1,55 +1,43 @@
 package main
 
 import (
-	"context"
-	"fmt"
-	"os"
+    "context"
+    "fmt"
+    "os"
 
-	"dagger.io/dagger"
+    "dagger.io/dagger"
 )
 
 func main() {
-	ctx := context.Background()
+    ctx := context.Background()
 
-	client, err := dagger.Connect(ctx, dagger.WithLogOutput(os.Stdout))
-	if err != nil {
-		panic(err)
-	}
-	defer client.Close()
+    client, err := dagger.Connect(ctx, dagger.WithLogOutput(os.Stdout))
+    if err != nil {
+        panic(err)
+    }
+    defer client.Close()
 
-	fmt.Println("Starting Dagger workflow...")
+    fmt.Println("Starting Dagger workflow...")
 
-	src := client.Host().Directory(".")
+    src := client.Host().Directory(".", dagger.HostDirectoryOpts{
+        Exclude: []string{"notebooks/artifacts"},
+    })
 
-	// Build Python container
-	container := client.Container().
-		From("python:3.11-slim").
-		WithDirectory("/app", src).
-		WithWorkdir("/app").
-		WithEnvVariable("PYTHONPATH", "/app").
-		// FORCE artifacts directory to exist inside container
-		WithExec([]string{"mkdir", "-p", "notebooks/artifacts"}).
-		// install everything
-		WithExec([]string{"pip", "install", "-r", "requirements.txt"}).
-		// run pipeline
-		WithExec([]string{"python", "src/run_training_pipeline.py"})
+    container := client.Container().
+        From("python:3.11-slim").
+        WithDirectory("/app", src).
+        WithWorkdir("/app").
+        WithEnvVariable("PYTHONPATH", "/app").
+        WithExec([]string{"pip", "install", "-r", "requirements.txt"}).
+        WithExec([]string{"python", "src/run_training_pipeline.py"}).
 
-	// Ensure local export directory exists
-	exportPath := "ci_artifacts"
-	os.RemoveAll(exportPath)
-	if err := os.MkdirAll(exportPath, 0o755); err != nil {
-		panic(err)
-	}
+        // ⭐ FIX → Kopiér underviserens logreg-model til model.pkl
+        WithExec([]string{"cp", "notebooks/artifacts/lead_model_lr.pkl", "notebooks/artifacts/model.pkl"})
 
-	// Now always safe: directory exists inside container
-	artifactDir := container.Directory("/app/notebooks/artifacts")
+    _, err = container.Directory("/app/notebooks/artifacts").Export(ctx, "ci_artifacts")
+    if err != nil {
+        panic(err)
+    }
 
-	_, err = artifactDir.Export(ctx, exportPath)
-	if err != nil {
-		fmt.Println("WARNING: Export failed, but continuing anyway")
-		fmt.Println(err)
-	}
-
-	fmt.Println("Artifacts exported to:", exportPath)
-	fmt.Println("Dagger workflow completed successfully.")
+    fmt.Println("Dagger workflow completed successfully.")
 }
