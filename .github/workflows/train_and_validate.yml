@@ -19,19 +19,29 @@ jobs:
         with:
           go-version: "1.22.5"
 
+      - name: Download go dependencies
+        run: go mod download
+     
       - name: Install Dagger CLI
         run: |
-          curl -L https://dl.dagger.io/dagger/install.sh \
-          | DAGGER_INSTALL_BINARY=/usr/local/bin/dagger sh
+         curl -L https://dl.dagger.io/dagger/install.sh | sh
+         export PATH="$PWD/bin:$PATH"
+         echo "$PWD/bin" >> $GITHUB_PATH
+         dagger version
 
       - name: Run training pipeline with Dagger
-        run: dagger run --workdir dagger go run main.go
+        run: dagger run go run ./dagger/main.go
+
+      - name: Prepare model artifact for validator
+        run: |
+          mkdir -p model
+          cp notebooks/artifacts/lead_model_lr.pkl model/model.pkl
 
       - name: Upload trained model artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4  
         with:
           name: model
-          path: notebooks/artifacts/lead_model_lr.pkl
+          path: model/model.pkl
 
       - name: Upload full artifacts bundle
         uses: actions/upload-artifact@v4
@@ -48,9 +58,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: model
-          path: artifacts
+          path: model
 
       - name: Run model validator
         uses: lasselundstenjensen/itu-sdse-project-model-validator@main
         with:
-          model-path: artifacts/lead_model_lr.pkl
+          model_password: ""

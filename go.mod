@@ -1,6 +1,6 @@
 module ml_project
 
-go 1.25.1
+go 1.22.5
 
 require (
 	dagger.io/dagger v0.19.8 // indirect

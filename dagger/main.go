@@ -29,12 +29,13 @@ func main() {
 		WithDirectory("/app", src).
 		WithWorkdir("/app").
 		WithEnvVariable("PYTHONPATH", "/app").
-		// Fetch raw dataset (DVC remote) so the training script can read it
+	// Fetch raw dataset (DVC remote) using Python stdlib to avoid curl dependency
 		WithExec([]string{
-			"sh", "-c",
-			"mkdir -p notebooks/artifacts && " +
-				"curl -L https://raw.githubusercontent.com/Jeppe-T-K/itu-sdse-project-data/refs/heads/main/raw_data.csv " +
-				"-o notebooks/artifacts/raw_data.csv",
+			"python", "-c",
+			"import urllib.request; " +
+				"urllib.request.urlretrieve(" +
+				"'https://raw.githubusercontent.com/Jeppe-T-K/itu-sdse-project-data/refs/heads/main/raw_data.csv'," +
+				"'notebooks/artifacts/raw_data.csv')",
 		}).
 		WithExec([]string{"pip", "install", "-r", "requirements.txt"}).
 		WithExec([]string{"python", "src/run_training_pipeline.py"})
