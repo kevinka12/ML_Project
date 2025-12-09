@@ -140,15 +140,16 @@ def run_pipeline():
 
     import joblib
 
-    os.makedirs("artifacts", exist_ok=True)
+    # Create directory required by validator
+    os.makedirs("artifacts/model", exist_ok=True)
 
-    final_model_path = "artifacts/model.pkl"
+    # Validator expects model/model.pkl
+    final_model_path = "artifacts/model/model.pkl"
 
-    # Always save the selected best model directly as pickle
+    # Save best model in the required location
     joblib.dump(best_model, final_model_path)
 
-    print("Saved validator-compatible model as artifacts/model.pkl")
-
+    print("Saved validator-compatible model as artifacts/model/model.pkl")
 
 if __name__ == "__main__":
     run_pipeline()
