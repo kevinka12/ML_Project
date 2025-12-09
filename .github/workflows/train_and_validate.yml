@@ -33,14 +33,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: model
-          path: notebooks/artifacts/model
+          path: artifacts/model
 
       # Upload the full artifacts folder
       - name: Upload full artifacts bundle
         uses: actions/upload-artifact@v4
         with:
           name: artifacts
-          path: notebooks/artifacts
+          path: artifacts
 
   validate:
     needs: train
