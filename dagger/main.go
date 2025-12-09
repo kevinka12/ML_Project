@@ -38,8 +38,8 @@ func main() {
 
 	// Export artifacts from container to host
 	_, err = container.
-		Directory("artifacts").
-		Export(ctx, "./artifacts")
+		Directory("/app/notebooks/artifacts").
+		Export(ctx, "./notebooks/artifacts")
 	if err != nil {
 		panic(err)
 	}
