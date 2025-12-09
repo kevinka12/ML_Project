@@ -25,7 +25,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: model
-          path: ci_artifacts/model.pkl
+          path: ci_artifacts/lead_model_lr.pkl
 
       - name: Upload all artifacts
         uses: actions/upload-artifact@v4
@@ -48,4 +48,4 @@ jobs:
         uses: lasselundstenjensen/itu-sdse-project-model-validator@main
         with:
           model_password: ""
-          model_location: "./model/model.pkl"
+          model_location: "./model/lead_model_lr.pkl"
