@@ -21,19 +21,19 @@ jobs:
       - name: Run Dagger training pipeline
         run: go run dagger/main.go
 
-      # Upload model.pkl specifically
+      # Upload ONLY the model.pkl (validator requires model.pkl)
       - name: Upload model artifact
         uses: actions/upload-artifact@v4
         with:
           name: model
-          path: ci_artifacts/model.pkl
+          path: notebooks/artifacts/model.pkl
 
-      # Upload everything else from artifacts
+      # Upload the rest (optional)
       - name: Upload all artifacts
         uses: actions/upload-artifact@v4
         with:
           name: artifacts
-          path: ci_artifacts/
+          path: notebooks/artifacts/
 
   validate:
     needs: train
