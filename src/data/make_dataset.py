@@ -14,14 +14,14 @@ def create_artifact_directory():
     """
     Creates artifacts/ directory if it does not exist.
     """
-    os.makedirs("artifacts", exist_ok=True)
+    os.makedirs("notebooks/artifacts", exist_ok=True)
     print("Created artifacts directory")
 
 
 def load_data():
     print("Loading training data")
 
-    data = pd.read_csv("artifacts/raw_data.csv")
+    data = pd.read_csv("notebooks/artifacts/raw_data.csv")
 
     print("Total rows:", data.count())
     print(data.head(5))
@@ -247,20 +247,24 @@ def combine_processed_data(cat_vars, cont_vars):
 
 def save_drift_artifacts(data):
     """
-    Saves data drift artifacts exactly as in the notebook:
-    - columns_drift.json
-    - training_data.csv
+    Saves data drift artifacts:
+    - notebooks/artifacts/columns_drift.json
+    - notebooks/artifacts/training_data.csv
     """
+
+    ARTIFACT_DIR = "notebooks/artifacts"
+
+    os.makedirs(ARTIFACT_DIR, exist_ok=True)
 
     # Get list of columns
     data_columns = list(data.columns)
 
     # Save column list
-    with open("./artifacts/columns_drift.json", "w+") as f:
+    with open(f"{ARTIFACT_DIR}/columns_drift.json", "w+") as f:
         json.dump(data_columns, f)
 
     # Save processed training data
-    data.to_csv("./artifacts/training_data.csv", index=False)
+    data.to_csv(f"{ARTIFACT_DIR}/training_data.csv", index=False)
 
     print("Saved drift artifacts and training data.")
 
@@ -293,9 +297,15 @@ def bin_source_column(data):
 
 def save_gold_dataset(data):
     """
-    Saves the gold medallion dataset exactly as in the notebook.
-    (Spark/Databricks-specific lines are intentionally kept out because they were commented.)
+    Saves the gold medallion dataset.
     """
 
-    data.to_csv("./artifacts/train_data_gold.csv", index=False)
-    print("Saved gold medallion dataset.")
+    ARTIFACT_DIR = "notebooks/artifacts"
+    os.makedirs(ARTIFACT_DIR, exist_ok=True)
+
+    output_path = f"{ARTIFACT_DIR}/train_data_gold.csv"
+
+    data.to_csv(output_path, index=False)
+
+    print(f"Saved gold medallion dataset at: {output_path}")
+
