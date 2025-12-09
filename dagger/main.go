@@ -21,7 +21,7 @@ func main() {
 	fmt.Println("Starting Dagger workflow...")
 
 	// Load local project directory
-	src := client.Host().Directory(".")
+	src := client.Host().Directory("../")
 
 	// Create container for training pipeline
 	container := client.Container().
