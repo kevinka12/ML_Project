@@ -10,41 +10,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Install Go
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: "1.22.5"
 
-      # Install Dagger CLI (correct ZIP method)
-      - name: Install Dagger CLI
-        run: |
-          curl -L https://github.com/dagger/dagger/releases/download/v0.19.8/dagger_v0.19.8_linux_amd64.zip -o dagger.zip
-          unzip dagger.zip
-          sudo mv dagger /usr/local/bin/dagger
-          dagger version
-
-      # Start Dagger engine
-      - name: Start Dagger engine
-        run: dagger engine start &
-
-      # Run Dagger Go pipeline
-      - name: Run Dagger pipeline
+      # Run the Go Dagger pipeline directly.
+      # The Go SDK will start the Dagger engine via Docker by itself.
+      - name: Run Dagger training pipeline
         run: go run dagger/main.go
 
-      # Upload model
+      # Upload the trained model for the validator.
+      # Our pipeline writes: notebooks/artifacts/model.pkl
+      # The validator will download this artifact as "model"
+      # and expect to find: model/model.pkl
       - name: Upload trained model
         uses: actions/upload-artifact@v4
         with:
           name: model
-          path: notebooks/artifacts/model/model.pkl
+          path: notebooks/artifacts/model.pkl
 
-      # Upload all artifacts (optional)
-      - name: Upload artifacts folder
+      # Optional: upload entire artifacts directory for debugging/inspection
+      - name: Upload all artifacts
         uses: actions/upload-artifact@v4
         with:
           name: artifacts
@@ -55,7 +45,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Run validator
+      # The validator action:
+      # - automatically downloads the "model" artifact
+      # - places it under ./model
+      # - loads ./model/model.pkl
+      # It only accepts one input: model_password.
+      - name: Run model validator
         uses: lasselundstenjensen/itu-sdse-project-model-validator@main
         with:
           model_password: ""
