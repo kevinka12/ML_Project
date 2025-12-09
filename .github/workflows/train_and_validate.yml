@@ -10,49 +10,53 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # ------------------------------
-      # Checkout repository
-      # ------------------------------
+      # -------------------------
+      # Checkout repo
+      # -------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ------------------------------
+      # -------------------------
       # Install Go
-      # ------------------------------
+      # -------------------------
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: "1.22.5"
 
-      # ------------------------------
-      # Run Dagger pipeline
-      # Using the official Dagger GitHub Action (NO CLI INSTALL)
-      # This runs: go run dagger/main.go
-      # ------------------------------
-      - name: Run Dagger training pipeline
-        uses: dagger/dagger-for-github@v5
-        with:
-          version: "0.19.8"
-          workdir: .
-          args: "go run dagger/main.go"
+      # -------------------------
+      # Install Dagger CLI (working method)
+      # -------------------------
+      - name: Install Dagger CLI
+        run: |
+          curl -L https://github.com/dagger/dagger/releases/download/v0.19.8/dagger_linux_amd64.tar.gz -o dagger.tar.gz
+          tar -xzf dagger.tar.gz
+          sudo mv dagger /usr/local/bin/dagger
+          dagger version
 
-      # ------------------------------
-      # Upload the final model artifact
-      # The validator expects:
-      #   artifact name: model
-      #   inside → model/model.pkl
-      #
-      # Our pipeline outputs:
-      #   notebooks/artifacts/model/model.pkl
-      # ------------------------------
+      # -------------------------
+      # Start Dagger engine
+      # -------------------------
+      - name: Start Dagger engine
+        run: dagger engine start &
+
+      # -------------------------
+      # Run your Go pipeline
+      # -------------------------
+      - name: Run Dagger pipeline
+        run: go run dagger/main.go
+
+      # -------------------------
+      # Upload model
+      # -------------------------
       - name: Upload trained model
         uses: actions/upload-artifact@v4
         with:
           name: model
           path: notebooks/artifacts/model/model.pkl
 
-      # Optional: upload the entire artifacts folder for debugging
-      - name: Upload full artifacts folder
+      # Optional
+      - name: Upload all artifacts
         uses: actions/upload-artifact@v4
         with:
           name: artifacts
@@ -63,14 +67,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # -----------------------------------------
-      # Run the model validator
-      #
-      # IMPORTANT:
-      # - The validator *automatically* downloads the model artifact named "model"
-      # - It expects the file to be located at model/model.pkl
-      # - DO NOT pass "model-path", only "model_password"
-      # -----------------------------------------
+      # Validator does NOT take model-path — only model_password
       - name: Validate model
         uses: lasselundstenjensen/itu-sdse-project-model-validator@main
         with:
