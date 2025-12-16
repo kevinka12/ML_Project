@@ -12,6 +12,7 @@ In this project the Dagger workflow is executed inside a GitHub Actions runner t
 
 ## Repository structure 
 
+```
 .
 ├── README.md
 ├── dagger
@@ -32,6 +33,7 @@ In this project the Dagger workflow is executed inside a GitHub Actions runner t
     ├── features
     ├── models                                    
     └── run_training_pipeline.py         #main pipeline orchestrator
+```
 
 The repository follows a standard MLOps project structure as well as a cookiecutter template.
 The root directory contains configuration files (go.mod, go.sum, requirements.txt) and documentation (README.md). The src/ directory contains the modularized Python codebase, organized into data/ (data loading and preprocessing), features/ (feature engineering), and models/ (model training and evaluation), with the main pipeline orchestrator in run_training_pipeline.py. 
