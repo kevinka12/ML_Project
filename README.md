@@ -59,7 +59,7 @@ As mentioned above, the automation is handled through GitHub Actions. The traini
 ## How do you run it
 The project is structured around a Dagger workflow that executes the Dagger training pipeline, collects the trained model artifact, and lastly it uploads the model. 
 
- After the training part, the uploaded model artifact is being downloaded in a separate job and then it’s being validated by using the provided model-validator GitHub Action. This done to ensure the following:
+ After the training part, the uploaded model artifact is being downloaded in a separate job and then it’s being validated by using the provided model-validator GitHub Action. This is done to ensure the following:
 
 That the model artifact is produced correctly.
 And the model passes the required inference tests.
