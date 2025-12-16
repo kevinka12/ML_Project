@@ -1,78 +1,74 @@
-# ITU BDS MLOPS'25 - Project
+# Project overview
+## Who is this for
+This repository contains the exam project for the course Data Science in Production: MLOps and Software Engineering. 
 
-## Task
+This project is intended for the teaching staff and validators reviewing the exam submission.
 
-Based on the input provided (see below), fork the repository and restructure the code to adhere to the concepts and ideas you have seen throughout the course.  The diagram below provides a detailed overview of the structure that the solution is expected to follow.   
+## What does this do
+This repository refactors a previously developed  jupyter notebook from a prior project and is a re-written example of what an actual production model includes. 
+The pipeline trains a model in a containerized environment using a Dagger workflow.
 
-![Project architecture](./docs/project-architecture.png)
+In this project the Dagger workflow is executed inside a GitHub Actions runner to ensure the reproducibility. The workflow installs all the required dependencies, and executes the training process and will produce a trained model artifact.
 
-For the exam submission, we expect you to submit a pdf containing:
-- the list of members of the group
-- the link to the github.com public repository hosting your solution
-  - following the above, there is *no need* to invite the teaching staff as collaborators
+## Repository structure 
 
-The repository linked in the submission should contain:
+```
+.
+├── README.md
+├── dagger
+│   └── main.go
+├── docs
+│   ├── diagrams.excalidraw
+│   └── project-architecture.png
+├── go.mod
+├── go.sum
+├── notebooks
+│   ├── artifacts
+│   ├── main.ipynb
+│   └── model_inference.py
+├── requirements.txt
+└── src
+    ├──__init__.py
+    ├── data      
+    ├── features
+    ├── models                                    
+    └── run_training_pipeline.py         #main pipeline orchestrator
+```
 
-- A README.md file that describes the project
-- GitHub automation workflow
-- Dagger workflow (in Go)
-- All history
+The repository follows a standard MLOps project structure as well as a cookiecutter template.
+The root directory contains configuration files (go.mod, go.sum, requirements.txt) and documentation (README.md). The src/ directory contains the modularized Python codebase, organized into data/ (data loading and preprocessing), features/ (feature engineering), and models/ (model training and evaluation), with the main pipeline orchestrator in run_training_pipeline.py. 
+The dagger/ directory contains the Go implementation of the containerized Dagger workflow (main.go).  .github/workflows/ defines the GitHub Actions CI/CD pipeline (train_and_validate.yml). 
+The notebooks/ directory preserves the original Jupyter notebook (main.ipynb) for reference. The docs/ directory includes project architecture diagrams and visual documentation. 
 
+## Dagger workflow
+By using Dagger, we’re executing the model training inside a containerized environment. The implementation of the Dagger workflow is inside: dagger/main.go.
 
-## Inputs
+The Dagger workflow is performing the following steps:
 
-You are given the following material:
-- Python monolith (see `notebooks` folder)
-- Raw input data (see `notebooks/artifacts` folder)
-- GitHub action to test model inference (see [`model-validator`](https://github.com/lasselundstenjensen/itu-sdse-project-model-validator) action)
+It builds a Python 3.11 container.
+Mounts the project source code into the container.
+Fetches the raw dataset. 
+Installing all the Python dependencies.
+Runs the training pipeline.
+Exports generated artifacts back to the host environment. 
 
-## Outputs
+## Github Actions
+As mentioned above, the automation is handled through GitHub Actions. The training workflow is defined in the following file:
+.github/workflows/train_and_validate.yml
 
-- Your GitHub repository (including all history)
-  - A README.md file that describes the project
-  - GitHub automation workflow
-  - Dagger workflow (in Go)
-- Model artifact produced by GitHub workflow and named 'model'
+## How do you run it
+The project is structured around a Dagger workflow that executes the Dagger training pipeline, collects the trained model artifact, and lastly it uploads the model. 
 
-> **NOTE:**
-> The Dagger workflow can be run locally or inside the GitHub workflow—both are viable options during development.
->
-> The Dagger workflow can run locally and can also be made to produce outputs locally during development. But when wrapping the Dagger workflow in a GitHub workflow, the output is instead stored inside the GitHub runner (i.e. a virtual machine).
->
-> Use the publicly available [`actions/upload-artifact`](https://github.com/actions/upload-artifact) to store the model artifact in the GitHub worklow pipeline.
->
-> This model artifact can then be picked up by the [action provided](https://github.com/lasselundstenjensen/itu-sdse-project-model-validator), which will run some inference tests to ensure that the correct model was trained.
+ After the training part, the uploaded model artifact is being downloaded in a separate job and then it’s being validated by using the provided model-validator GitHub Action. This is done to ensure the following:
 
+That the model artifact is produced correctly.
+And the model passes the required inference tests.
 
-## How will we assess
+## Output
+The changes are being pushed to the main branch, or by triggering the workflow manually, which we did many times to test the workflow. The GitHub Actions will do the following:
 
-Below, we provide information on how we will assess the submission clustered around several aspects.  The list relates to groups of size 3; if your group is of size 4, you are expected also to work on the optional items, i.e., to use pull requests and to provide tests.
+Run the Dagger workflow,
+Uploading the trained model,
+And validate the model automatically. 
 
-#### Versioning
-
-- Use of Git (semantic commit messages, branches, branch longevity, commit frequency/size)
-- Management of data
-- Use of pull requests (OPTIONAL)
-
-#### Programming
-
-- Decomposition of Python notebook
-- Adherance to standard data science MLOps project structure
-- Presence of tests (OPTIONAL)
-
-#### Workflow automation
-
-- Presence of a workflow that trains the model
-- Presence of a workflow that tests the model
-- Structure of Dagger workflow
-- Orchestration of Dagger workflow through GitHub workflow
-
-#### Documentation (README.md)
-
-- Description of project structure
-- How to run the code and generate the model artifact
-
-
-## Questions
-
-If you have any questions about the information shared here, please feel free to post them on Learnit. Answers to private emails on this topic will also be shared on Learnit, along with the original email content, so that everyone has access to the same information.
+The output of this project is a trained machine learning model. The output was a Logistic Regression model. The automated training pipeline is producing and uploading the model as a GitHub Actions artifact called “model”. 
