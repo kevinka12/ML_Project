@@ -67,8 +67,8 @@ And the model passes the required inference tests.
 ## Output
 The changes are being pushed to the main branch, or by triggering the workflow manually, which we did many times to test the workflow. The GitHub Actions will do the following:
 
-Run the Dagger workflow
-Uploading the trained model
-And validate the model automatically 
+Run the Dagger workflow,
+Uploading the trained model,
+And validate the model automatically. 
 
 The output of this project is a trained machine learning model. The output was a Logistic Regression model. The automated training pipeline is producing and uploading the model as a GitHub Actions artifact called “model”. 
