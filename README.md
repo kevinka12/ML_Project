@@ -65,7 +65,7 @@ That the model artifact is produced correctly.
 And the model passes the required inference tests.
 
 ## Output
-The changes are being pushed to the main branch, or by triggering the workflow manually, which we did many times to test the workflow. The the GitHub Actions will do the following:
+The changes are being pushed to the main branch, or by triggering the workflow manually, which we did many times to test the workflow. The GitHub Actions will do the following:
 
 Run the Dagger workflow
 Uploading the trained model
